@@ -91,6 +91,10 @@ export class Group<C extends string = string> {
   excludeRole(role: Role) {
     this.roles = this.roles.filter((_role) => _role !== role);
   }
+  inheritFrom(group: Group) {
+    this.permissions = [...group.getPermissions()];
+    this.roles = [...group.getRoles()];
+  }
 }
 
 interface IPermissionCallbacks<A> {
