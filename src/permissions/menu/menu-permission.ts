@@ -129,7 +129,7 @@ export class MenuAccessPermission extends Permission<
         });
       });
 
-      const group = this.target.group;
+      const group = this.target.getGroup();
       if (group) {
         const menuAccessPermissions = group.getPermissions(
           "menu",
