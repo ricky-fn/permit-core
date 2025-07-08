@@ -10,27 +10,27 @@
 
 import { AccessControl, Group, Role } from "./core";
 import {
-  ComponentAccessAction,
-  ComponentAccessPermission,
-  IComponentAccessParameters,
-  IComponentPermissionRule,
-  IMenuAccessParameters,
-  IRouteAccessParameters,
-  IRoutePermissionRule,
-  MenuAccessAction,
-  MenuAccessPermission,
-  MenuPermissionRule,
-  RouteAccessAction,
-  RouteAccessPermission,
+	ComponentAccessAction,
+	ComponentAccessPermission,
+	type IComponentAccessParameters,
+	type IComponentPermissionRule,
+	type IMenuAccessParameters,
+	type IRouteAccessParameters,
+	type IRoutePermissionRule,
+	MenuAccessAction,
+	MenuAccessPermission,
+	type MenuPermissionRule,
+	RouteAccessAction,
+	RouteAccessPermission,
 } from "./permissions";
 
 // Core Access Control Classes
 export {
-  Role,
-  Group,
-  Permission,
-  Action,
-  AccessControl,
+	Role,
+	Group,
+	Permission,
+	Action,
+	AccessControl,
 } from "./core/access-control";
 
 // Permission Message Interface
@@ -38,34 +38,34 @@ export type { IPermissionMessage } from "./core/permission-message";
 
 // Route Access Control
 export {
-  RouteAccessPermission,
-  RouteAccessAction,
+	RouteAccessPermission,
+	RouteAccessAction,
 } from "./permissions/route/route-permission";
 
 // Component Access Control
 export {
-  ComponentAccessPermission,
-  ComponentAccessAction,
+	ComponentAccessPermission,
+	ComponentAccessAction,
 } from "./permissions/component/component-permission";
 
 // Menu Access Control
 export {
-  MenuAccessPermission,
-  MenuAccessAction,
+	MenuAccessPermission,
+	MenuAccessAction,
 } from "./permissions/menu/menu-permission";
 
 // Permission Type Definitions
 export type {
-  RolePermissions,
-  RolePermissionGroup,
-  GroupPermissions,
-  GroupPermissionGroup,
+	RolePermissions,
+	RolePermissionGroup,
+	GroupPermissions,
+	GroupPermissionGroup,
 } from "./types/permission-types";
 
 // Type Re-exports for consumer convenience
 export type {
-  Permission as PermissionType,
-  Action as ActionType,
+	Permission as PermissionType,
+	Action as ActionType,
 } from "./core/access-control";
 
 /**
@@ -80,10 +80,10 @@ export type {
  * @returns {AccessControl} Preconfigured access control instance
  */
 export function createAccessControl(config: {
-  roles: Role[];
-  groups?: Group[];
+	roles: Role[];
+	groups?: Group[];
 }): AccessControl {
-  return new AccessControl(config.roles);
+	return new AccessControl(config.roles);
 }
 
 /**
@@ -100,13 +100,13 @@ export function createAccessControl(config: {
  * @param middlewares - Optional validation middlewares
  */
 export function createRoutePermission(
-  target: Role | Group,
-  rules: IRoutePermissionRule[],
-  middlewares: Array<
-    (permission: RouteAccessPermission, action: RouteAccessAction) => void
-  > = [],
+	target: Role | Group,
+	rules: IRoutePermissionRule[],
+	middlewares: Array<
+		(permission: RouteAccessPermission, action: RouteAccessAction) => void
+	> = [],
 ): RouteAccessPermission {
-  return new RouteAccessPermission(target, rules, middlewares);
+	return new RouteAccessPermission(target, rules, middlewares);
 }
 
 /**
@@ -116,10 +116,10 @@ export function createRoutePermission(
  * @param rules - Component access rules
  */
 export function createComponentPermission(
-  target: Role | Group,
-  rules: IComponentPermissionRule[],
+	target: Role | Group,
+	rules: IComponentPermissionRule[],
 ): ComponentAccessPermission {
-  return new ComponentAccessPermission(target, rules);
+	return new ComponentAccessPermission(target, rules);
 }
 
 /**
@@ -129,10 +129,10 @@ export function createComponentPermission(
  * @param rules - Menu access rules
  */
 export function createMenuPermission(
-  target: Role | Group,
-  rules: MenuPermissionRule[],
+	target: Role | Group,
+	rules: MenuPermissionRule[],
 ): MenuAccessPermission {
-  return new MenuAccessPermission(target, rules);
+	return new MenuAccessPermission(target, rules);
 }
 
 /**
@@ -143,10 +143,10 @@ export function createMenuPermission(
  * @returns {MenuAccessAction} A new instance of MenuAccessAction
  */
 export function createMenuAccessAction(
-  roleCode: string,
-  parameters: IMenuAccessParameters,
+	roleCode: string,
+	parameters: IMenuAccessParameters,
 ): MenuAccessAction {
-  return new MenuAccessAction(roleCode, parameters);
+	return new MenuAccessAction(roleCode, parameters);
 }
 
 /**
@@ -157,10 +157,10 @@ export function createMenuAccessAction(
  * @returns {ComponentAccessAction} A new instance of ComponentAccessAction
  */
 export function createComponentAccessAction(
-  roleCode: string,
-  parameters: IComponentAccessParameters,
+	roleCode: string,
+	parameters: IComponentAccessParameters,
 ): ComponentAccessAction {
-  return new ComponentAccessAction(roleCode, parameters);
+	return new ComponentAccessAction(roleCode, parameters);
 }
 
 /**
@@ -171,8 +171,8 @@ export function createComponentAccessAction(
  * @returns {RouteAccessAction} A new instance of RouteAccessAction
  */
 export function createRouteAccessAction(
-  roleCode: string,
-  parameters: IRouteAccessParameters,
+	roleCode: string,
+	parameters: IRouteAccessParameters,
 ): RouteAccessAction {
-  return new RouteAccessAction(roleCode, parameters);
+	return new RouteAccessAction(roleCode, parameters);
 }
