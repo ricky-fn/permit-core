@@ -1,8 +1,11 @@
 export {
-  Role,
-  Group,
-  Permission,
-  Action,
-  AccessControl,
+	Role,
+	Group,
+	Permission,
+	Action,
+	AccessControl,
 } from "./access-control.js";
-export { IPermissionMessage, PermissionMessage } from "./permission-message.js";
+export {
+	type IPermissionMessage,
+	PermissionMessage,
+} from "./permission-message.js";
