@@ -1,156 +1,36 @@
-import { Action, Permission, Group, Role, PermissionMessage } from "../../core";
-import { findSharedMembers, mergeArrays } from "../../utilities";
 import type {
-	MenuPermissionRule,
-	MenuAccessActionType,
 	IMenuAccessParameters,
+	IMenuPermissionRule,
+	MenuAccessActionType,
 } from "./menu-types";
 
-export class MenuAccessAction extends Action<
-	MenuAccessActionType,
-	IMenuAccessParameters
-> {
+import { Action, Group, Role } from "../../core";
+import { ListAccessPermission } from "../list/list-permission";
+import type { ListPermissionRule } from "../list/list-types";
+import type { ListAccessActionType } from "../list/list-types";
+
+export class MenuAccessAction<
+	T = MenuAccessActionType,
+	P = IMenuAccessParameters,
+> extends Action<T, P> {
 	constructor(
 		protected roleCode: string,
-		protected parameters: IMenuAccessParameters,
+		protected parameters: P,
 	) {
-		super(roleCode, "menu", parameters);
+		super(roleCode, "menu" as T, parameters);
 	}
 }
 
-export class MenuAccessPermission extends Permission<
-	MenuAccessActionType,
-	MenuPermissionRule
-> {
+export class MenuAccessPermission<
+	T extends string = MenuAccessActionType,
+	R extends
+		ListPermissionRule<ListAccessActionType>[] = ListPermissionRule<ListAccessActionType>[],
+	A extends Action = MenuAccessAction,
+> extends ListAccessPermission<T, R, A> {
 	constructor(
-		protected target: Role | Group,
-		protected rules: MenuPermissionRule[],
+		protected target: Group | Role,
+		protected rules: R,
 	) {
-		super(target, "menu", rules);
-	}
-	validate(action: MenuAccessAction) {
-		if (action.getType() !== this.type) {
-			return new PermissionMessage({
-				status: "failed",
-				message: "action type doesn't match the permission type",
-				target: this.target,
-				action,
-			});
-		}
-
-		const matchedRules = this.getRulesByAction(action);
-
-		if (matchedRules.length === 0) {
-			return new PermissionMessage({
-				status: "failed",
-				message: `No access permission for menu '${action.getParameters().identifier}'`,
-				target: this.target,
-				action,
-			});
-		}
-	}
-	getRulesByAction(action: MenuAccessAction) {
-		const accessIdentifier = action.getParameters().identifier;
-		const validRules: MenuPermissionRule[] = [];
-
-		for (const rule of this.rules) {
-			let identifierMatchedRule: MenuPermissionRule | undefined = undefined;
-			if (
-				rule.identifier instanceof RegExp &&
-				rule.identifier.test(accessIdentifier)
-			) {
-				identifierMatchedRule = rule;
-			} else if (rule.identifier === accessIdentifier) {
-				identifierMatchedRule = rule;
-			}
-
-			if (identifierMatchedRule) {
-				validRules.push(identifierMatchedRule);
-			}
-		}
-
-		return validRules;
-	}
-	getAccessibleMenuList(action: MenuAccessAction) {
-		let accessibleMenuList: string[] = [];
-		const requestedMenuList: string[] = action.getParameters().menuList;
-
-		if (this.target instanceof Group) {
-			const rules: MenuPermissionRule[] = this.getRulesByAction(action);
-
-			rules.forEach((rule) => {
-				requestedMenuList.forEach((requestMenu) => {
-					if (
-						(rule.menuList instanceof RegExp &&
-							rule.menuList.test(requestMenu)) ||
-						(rule.menuList instanceof Array &&
-							rule.menuList.includes(requestMenu))
-					) {
-						if (!rule.exclude) {
-							accessibleMenuList.push(requestMenu);
-						} else {
-							accessibleMenuList = accessibleMenuList.filter((menu) => {
-								return (
-									(rule.menuList instanceof RegExp &&
-										!rule.menuList.test(menu)) ||
-									(rule.menuList instanceof Array &&
-										!rule.menuList.includes(menu))
-								);
-							});
-						}
-					}
-				});
-			});
-		}
-
-		if (this.target instanceof Role) {
-			const rules: MenuPermissionRule[] = this.getRulesByAction(action);
-			let roleAccessibleMenuList: string[] = [];
-			rules.forEach((rule) => {
-				requestedMenuList.forEach((requestMenu) => {
-					if (
-						(rule.menuList instanceof RegExp &&
-							rule.menuList.test(requestMenu)) ||
-						(rule.menuList instanceof Array &&
-							rule.menuList.includes(requestMenu))
-					) {
-						if (!rule.exclude) {
-							roleAccessibleMenuList.push(requestMenu);
-						} else {
-							roleAccessibleMenuList = roleAccessibleMenuList.filter((menu) => {
-								return (
-									(rule.menuList instanceof RegExp &&
-										!rule.menuList.test(menu)) ||
-									(rule.menuList instanceof Array &&
-										!rule.menuList.includes(menu))
-								);
-							});
-						}
-					}
-				});
-			});
-
-			const group = this.target.getGroup();
-			if (group) {
-				const menuAccessPermissions = group.getPermissions(
-					"menu",
-				) as MenuAccessPermission[];
-
-				if (menuAccessPermissions.length > 0) {
-					menuAccessPermissions.forEach((permission) => {
-						accessibleMenuList = mergeArrays(
-							accessibleMenuList,
-							permission.getAccessibleMenuList(action),
-						);
-					});
-				}
-
-				return findSharedMembers(accessibleMenuList, roleAccessibleMenuList);
-			}
-
-			return roleAccessibleMenuList;
-		}
-
-		return accessibleMenuList;
+		super(target, "menu" as T, rules);
 	}
 }
