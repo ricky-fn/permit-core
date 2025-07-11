@@ -44,10 +44,14 @@ export default tseslint.config(
 		],
 		files: ["**/*.{js,ts}"],
 		languageOptions: {
+			parser: "@typescript-eslint/parser",
 			parserOptions: {
 				projectService: {
 					allowDefaultProject: ["*.config.*s", "bin/index.js"],
 				},
+				project: "./tsconfig.json", // Ensure this points to your tsconfig.json
+				ecmaVersion: 2020,
+				sourceType: "module",
 			},
 		},
 		rules: {
@@ -78,6 +82,11 @@ export default tseslint.config(
 		settings: {
 			perfectionist: { partitionByComment: true, type: "natural" },
 			vitest: { typecheck: true },
+			"import/resolver": {
+				node: {
+					extensions: [".js", ".jsx", ".ts", ".tsx"],
+				},
+			},
 		},
 	},
 	{

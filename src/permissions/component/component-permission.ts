@@ -1,16 +1,29 @@
-import { Action, Group, Permission, PermissionMessage, Role } from "../../core";
 import type {
 	ComponentAccessActionType,
 	IComponentAccessParameters,
 	IComponentPermissionRule,
 } from "./component-types";
 
+import { Action, Group, Permission, PermissionMessage, Role } from "../../core";
+
+export class ComponentAccessAction extends Action<
+	ComponentAccessActionType,
+	IComponentAccessParameters
+> {
+	constructor(
+		protected roleCode: string,
+		protected parameters: IComponentAccessParameters,
+	) {
+		super(roleCode, "component", parameters);
+	}
+}
+
 export class ComponentAccessPermission extends Permission<
 	ComponentAccessActionType,
 	IComponentPermissionRule
 > {
 	constructor(
-		protected target: Role | Group,
+		protected target: Group | Role,
 		protected rules: IComponentPermissionRule[],
 	) {
 		super(target, "component", rules);
@@ -18,10 +31,10 @@ export class ComponentAccessPermission extends Permission<
 	validate(action: ComponentAccessAction) {
 		if (action.getType() !== this.type) {
 			return new PermissionMessage({
-				status: "failed",
-				message: "action type doesn't match the permission type",
-				target: this.target,
 				action,
+				message: "action type doesn't match the permission type",
+				status: "failed",
+				target: this.target,
 			});
 		}
 
@@ -29,10 +42,10 @@ export class ComponentAccessPermission extends Permission<
 
 		if (matchedRules.length === 0) {
 			return new PermissionMessage({
-				status: "failed",
-				message: `action ${action.getParameters().action} are not allowed to perform in this component`,
-				target: this.target,
 				action,
+				message: `action ${action.getParameters().action} are not allowed to perform in this component`,
+				status: "failed",
+				target: this.target,
 			});
 		}
 	}
@@ -52,7 +65,7 @@ export class ComponentAccessPermission extends Permission<
 				validRule = rule;
 			}
 
-			if (validRule && validRule.actions.includes(accessAction)) {
+			if (validRule?.actions.includes(accessAction)) {
 				if (validRule.exclude) {
 					validRules = [];
 					continue;
@@ -62,17 +75,5 @@ export class ComponentAccessPermission extends Permission<
 		}
 
 		return validRules;
-	}
-}
-
-export class ComponentAccessAction extends Action<
-	ComponentAccessActionType,
-	IComponentAccessParameters
-> {
-	constructor(
-		protected roleCode: string,
-		protected parameters: IComponentAccessParameters,
-	) {
-		super(roleCode, "component", parameters);
 	}
 }

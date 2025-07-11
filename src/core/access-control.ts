@@ -3,59 +3,99 @@ import {
 	PermissionMessage,
 } from "./permission-message.js";
 
-export class Role<C extends string = string, T = unknown> {
-	private permissions: Permission[] = [];
-	private group?: Group;
-	constructor(
-		protected code: C,
-		protected config?: T,
-	) {}
+interface IPermissionCallbacks<A> {
+	onFailure?: (action: A, message: IPermissionMessage) => void;
+	onSuccess: (action: A) => void;
+}
 
-	getCode(): C {
-		return this.code;
-	}
+abstract class RoleAccessControl {
+	constructor(protected roles: Role[]) {}
 
-	getConfig(): void | T {
-		return this.config;
-	}
+	// Allow developer to add role
+	abstract addRole(role: Role): void;
 
-	getGroup() {
-		return this.group;
-	}
+	// Checking Permissions
+	abstract checkPermissions(
+		action: Action,
+		callbacks: IPermissionCallbacks<Action>,
+	): void;
+}
 
-	assignGroup(group: Group) {
-		if (!this.group) {
-			this.group = group;
-		} else {
-			throw new Error(
-				`role ${this.code} has already assigned to another group: ${this.group.getCode()}`,
-			);
+export class AccessControl extends RoleAccessControl {
+	addRole(role: Role) {
+		if (!this.roles.includes(role)) {
+			this.roles.push(role);
 		}
 	}
+	checkPermissions<A extends Action>(
+		action: A,
+		callbacks: IPermissionCallbacks<A>,
+	): void {
+		const roleCode = action.getRoleCode();
+		const role = this.getRoleByCode(roleCode);
 
-	getPermissions(type?: string) {
-		const rolePermissions = type
-			? this.permissions.filter((permission) => permission.getType() === type)
-			: this.permissions;
-		const groupPermissions = this.group ? this.group.getPermissions(type) : [];
+		if (!role) {
+			if (callbacks.onFailure) {
+				callbacks.onFailure(action, {
+					action,
+					message: "Role not found.",
+					status: "failed",
+				});
+			}
+			return;
+		}
 
-		return [...groupPermissions, ...rolePermissions];
-	}
+		const matchingPermissions = role.getPermissions(action.getType());
 
-	assignPermission(permission: Permission) {
-		if (!this.permissions.includes(permission)) {
-			if (this.group) {
-				if (!this.group.getPermissions().includes(permission)) {
-					this.permissions.push(permission);
-				}
-			} else {
-				this.permissions.push(permission);
+		if (matchingPermissions.length === 0 && callbacks.onFailure) {
+			callbacks.onFailure(action, {
+				action,
+				message: "No matching permissions found.",
+				status: "failed",
+				target: role,
+			});
+			return;
+		}
+
+		for (const permission of matchingPermissions) {
+			const result = permission.validate(action);
+			if (
+				result instanceof PermissionMessage &&
+				result.status === "failed" &&
+				callbacks.onFailure
+			) {
+				callbacks.onFailure(action, result);
+				return;
 			}
 		}
+
+		callbacks.onSuccess(action);
+	}
+	getRoleByCode(roleCode: string) {
+		return this.roles.find((role) => role.getCode() === roleCode);
+	}
+	getRoles() {
+		return this.roles;
+	}
+}
+
+export class Action<T = string, P = object> {
+	constructor(
+		protected roleCode: string,
+		protected type: T,
+		protected parameters: P,
+	) {}
+
+	getParameters(): P {
+		return this.parameters;
 	}
 
-	resetGroup() {
-		this.group = undefined;
+	getRoleCode(): string {
+		return this.roleCode;
+	}
+
+	getType(): T {
+		return this.type;
 	}
 }
 
@@ -80,34 +120,28 @@ export class Group<C extends string = string> {
 			role.assignGroup(this);
 		}
 	}
-	getRoles(): Role[] {
-		return this.roles;
+	excludeRole(role: Role) {
+		this.roles = this.roles.filter((_role) => _role !== role);
+	}
+	getCode() {
+		return this.code;
 	}
 	getPermissions(type?: string) {
 		return type
 			? this.permissions.filter((permission) => permission.getType() === type)
 			: this.permissions;
 	}
-	getCode() {
-		return this.code;
-	}
-	excludeRole(role: Role) {
-		this.roles = this.roles.filter((_role) => _role !== role);
+	getRoles(): Role[] {
+		return this.roles;
 	}
 	inheritFrom(group: Group) {
 		this.permissions = [...group.getPermissions()];
 		this.roles = [...group.getRoles()];
 	}
 }
-
-interface IPermissionCallbacks<A> {
-	onSuccess: (action: A) => void;
-	onFailure?: (action: A, message: IPermissionMessage) => void;
-}
-
 export abstract class Permission<T = string, R = unknown> {
 	constructor(
-		protected target: Role | Group,
+		protected target: Group | Role,
 		protected type: T,
 		protected rules: R[],
 	) {
@@ -121,6 +155,10 @@ export abstract class Permission<T = string, R = unknown> {
 		return this;
 	}
 
+	getRules(): R[] {
+		return this.rules;
+	}
+
 	getTarget() {
 		return this.target;
 	}
@@ -129,98 +167,61 @@ export abstract class Permission<T = string, R = unknown> {
 		return this.type;
 	}
 
-	getRules(): R[] {
-		return this.rules;
-	}
-
-	abstract validate(action: Action): IPermissionMessage | void;
+	abstract validate(action: Action): IPermissionMessage | undefined;
 }
 
-export class Action<T = string, P = object> {
+export class Role<C extends string = string, T = unknown> {
+	private group?: Group;
+	private permissions: Permission[] = [];
 	constructor(
-		protected roleCode: string,
-		protected type: T,
-		protected parameters: P,
+		protected code: C,
+		protected config?: T,
 	) {}
 
-	getRoleCode(): string {
-		return this.roleCode;
-	}
-
-	getType(): T {
-		return this.type;
-	}
-
-	getParameters(): P {
-		return this.parameters;
-	}
-}
-
-abstract class RoleAccessControl {
-	constructor(protected roles: Role[]) {}
-
-	// Allow developer to add role
-	abstract addRole(role: Role): void;
-
-	// Checking Permissions
-	abstract checkPermissions(
-		action: Action,
-		callbacks: IPermissionCallbacks<Action>,
-	): void;
-}
-
-export class AccessControl extends RoleAccessControl {
-	addRole(role: Role) {
-		if (this.roles.indexOf(role) === -1) {
-			this.roles.push(role);
+	assignGroup(group: Group) {
+		if (!this.group) {
+			this.group = group;
+		} else {
+			throw new Error(
+				`role ${this.code} has already assigned to another group: ${this.group.getCode()}`,
+			);
 		}
 	}
-	checkPermissions<A extends Action>(
-		action: A,
-		callbacks: IPermissionCallbacks<A>,
-	): void {
-		const roleCode = action.getRoleCode();
-		const role = this.getRoleByCode(roleCode);
 
-		if (!role) {
-			if (callbacks.onFailure) {
-				return callbacks.onFailure(action, {
-					status: "failed",
-					message: "Role not found.",
-					action,
-				});
-			}
-			return;
-		}
-
-		const matchingPermissions = role.getPermissions(action.getType());
-
-		if (matchingPermissions.length === 0 && callbacks.onFailure) {
-			return callbacks.onFailure(action, {
-				status: "failed",
-				message: "No matching permissions found.",
-				target: role,
-				action,
-			});
-		}
-
-		for (const permission of matchingPermissions) {
-			const result = permission.validate(action);
-			if (
-				result instanceof PermissionMessage &&
-				result.status === "failed" &&
-				callbacks.onFailure
-			) {
-				return callbacks.onFailure(action, result);
+	assignPermission(permission: Permission) {
+		if (!this.permissions.includes(permission)) {
+			if (this.group) {
+				if (!this.group.getPermissions().includes(permission)) {
+					this.permissions.push(permission);
+				}
+			} else {
+				this.permissions.push(permission);
 			}
 		}
+	}
 
-		callbacks.onSuccess(action);
+	getCode(): C {
+		return this.code;
 	}
-	getRoleByCode(roleCode: string) {
-		return this.roles.find((role) => role.getCode() === roleCode);
+
+	getConfig(): T | undefined {
+		return this.config;
 	}
-	getRoles() {
-		return this.roles;
+
+	getGroup() {
+		return this.group;
+	}
+
+	getPermissions(type?: string) {
+		const rolePermissions = type
+			? this.permissions.filter((permission) => permission.getType() === type)
+			: this.permissions;
+		const groupPermissions = this.group ? this.group.getPermissions(type) : [];
+
+		return [...groupPermissions, ...rolePermissions];
+	}
+
+	resetGroup() {
+		this.group = undefined;
 	}
 }

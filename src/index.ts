@@ -15,11 +15,11 @@ import {
 	type IComponentAccessParameters,
 	type IComponentPermissionRule,
 	type IMenuAccessParameters,
+	type IMenuPermissionRule,
 	type IRouteAccessParameters,
 	type IRoutePermissionRule,
 	MenuAccessAction,
 	MenuAccessPermission,
-	type MenuPermissionRule,
 	RouteAccessAction,
 	RouteAccessPermission,
 } from "./permissions";
@@ -130,7 +130,7 @@ export function createComponentPermission(
  */
 export function createMenuPermission(
 	target: Role | Group,
-	rules: MenuPermissionRule[],
+	rules: IMenuPermissionRule[],
 ): MenuAccessPermission {
 	return new MenuAccessPermission(target, rules);
 }

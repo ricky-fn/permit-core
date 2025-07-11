@@ -4,3 +4,5 @@ export * from "./menu/menu-permission";
 export * from "./menu/menu-types";
 export * from "./route/route-permission";
 export * from "./route/route-types";
+export * from "./list/list-permission";
+export * from "./list/list-types";
