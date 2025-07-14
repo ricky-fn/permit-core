@@ -43,19 +43,19 @@ export class ListAccessPermission<
 				this.getRulesByAction(action);
 
 			rules.forEach((rule) => {
-				requestedList.forEach((requestMenu) => {
+				requestedList.forEach((requestList) => {
 					const ruleList = rule.list;
 					if (
-						(ruleList instanceof RegExp && ruleList.test(requestMenu)) ||
-						(ruleList instanceof Array && ruleList.includes(requestMenu))
+						(ruleList instanceof RegExp && ruleList.test(requestList)) ||
+						(ruleList instanceof Array && ruleList.includes(requestList))
 					) {
 						if (!rule.exclude) {
-							accessibleList.push(requestMenu);
+							accessibleList.push(requestList);
 						} else {
-							accessibleList = accessibleList.filter((menu) => {
+							accessibleList = accessibleList.filter((list) => {
 								return (
-									(ruleList instanceof RegExp && !ruleList.test(menu)) ||
-									(ruleList instanceof Array && !ruleList.includes(menu))
+									(ruleList instanceof RegExp && !ruleList.test(list)) ||
+									(ruleList instanceof Array && !ruleList.includes(list))
 								);
 							});
 						}
@@ -70,19 +70,19 @@ export class ListAccessPermission<
 			let roleAccessibleList: string[] = [];
 
 			rules.forEach((rule) => {
-				requestedList.forEach((requestMenu) => {
+				requestedList.forEach((requestList) => {
 					const ruleList = rule.list;
 					if (
-						(ruleList instanceof RegExp && ruleList.test(requestMenu)) ||
-						(ruleList instanceof Array && ruleList.includes(requestMenu))
+						(ruleList instanceof RegExp && ruleList.test(requestList)) ||
+						(ruleList instanceof Array && ruleList.includes(requestList))
 					) {
 						if (!rule.exclude) {
-							roleAccessibleList.push(requestMenu);
+							roleAccessibleList.push(requestList);
 						} else {
-							roleAccessibleList = roleAccessibleList.filter((menu) => {
+							roleAccessibleList = roleAccessibleList.filter((list) => {
 								return (
-									(ruleList instanceof RegExp && !ruleList.test(menu)) ||
-									(ruleList instanceof Array && !ruleList.includes(menu))
+									(ruleList instanceof RegExp && !ruleList.test(list)) ||
+									(ruleList instanceof Array && !ruleList.includes(list))
 								);
 							});
 						}
@@ -93,7 +93,7 @@ export class ListAccessPermission<
 			const group = this.target.getGroup();
 			if (group) {
 				const listAccessPermissions = group.getPermissions(
-					"menu",
+					action.getType(),
 				) as ListAccessPermission[];
 
 				if (listAccessPermissions.length > 0) {
@@ -154,7 +154,7 @@ export class ListAccessPermission<
 		if (matchedRules.length === 0) {
 			return new PermissionMessage({
 				action,
-				message: `No access permission for menu '${(action.getParameters() as ListAccessParameters<string>).identifier}'`,
+				message: `No access permission for ${action.getType()} '${(action.getParameters() as ListAccessParameters<string>).identifier}'`,
 				status: "failed",
 				target: this.target,
 			});
