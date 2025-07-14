@@ -6,8 +6,6 @@ import type {
 
 import { Action, Group, Role } from "../../core";
 import { ListAccessPermission } from "../list/list-permission";
-import type { ListPermissionRule } from "../list/list-types";
-import type { ListAccessActionType } from "../list/list-types";
 
 export class MenuAccessAction<
 	T = MenuAccessActionType,
@@ -23,8 +21,7 @@ export class MenuAccessAction<
 
 export class MenuAccessPermission<
 	T extends string = MenuAccessActionType,
-	R extends
-		ListPermissionRule<ListAccessActionType>[] = ListPermissionRule<ListAccessActionType>[],
+	R extends IMenuPermissionRule[] = IMenuPermissionRule[],
 	A extends Action = MenuAccessAction,
 > extends ListAccessPermission<T, R, A> {
 	constructor(

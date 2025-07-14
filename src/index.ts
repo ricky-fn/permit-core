@@ -23,8 +23,15 @@ import {
 	RouteAccessAction,
 	RouteAccessPermission,
 } from "./permissions";
+import {
+	DropdownAccessAction,
+	DropdownAccessPermission,
+} from "./permissions/dropdown/dropdown-permission";
+import type {
+	IDropdownAccessParameters,
+	IDropdownPermissionRule,
+} from "./permissions/dropdown/dropdown-type";
 
-// Core Access Control Classes
 export {
 	Role,
 	Group,
@@ -33,28 +40,23 @@ export {
 	AccessControl,
 } from "./core/access-control";
 
-// Permission Message Interface
 export type { IPermissionMessage } from "./core/permission-message";
 
-// Route Access Control
 export {
 	RouteAccessPermission,
 	RouteAccessAction,
 } from "./permissions/route/route-permission";
 
-// Component Access Control
 export {
 	ComponentAccessPermission,
 	ComponentAccessAction,
 } from "./permissions/component/component-permission";
 
-// Menu Access Control
 export {
 	MenuAccessPermission,
 	MenuAccessAction,
 } from "./permissions/menu/menu-permission";
 
-// Permission Type Definitions
 export type {
 	RolePermissions,
 	RolePermissionGroup,
@@ -62,11 +64,30 @@ export type {
 	GroupPermissionGroup,
 } from "./types/permission-types";
 
-// Type Re-exports for consumer convenience
 export type {
 	Permission as PermissionType,
 	Action as ActionType,
 } from "./core/access-control";
+
+/**
+ * Creates a role
+ *
+ * @param code - The code of the role
+ * @returns {Role} A new instance of Role
+ */
+export function createRole(code: string): Role {
+	return new Role(code);
+}
+
+/**
+ * Creates a group
+ *
+ * @param code - The code of the group
+ * @returns {Group} A new instance of Group
+ */
+export function createGroup(code: string): Group {
+	return new Group(code);
+}
 
 /**
  * Default Module Initialization Function
@@ -150,13 +171,40 @@ export function createMenuAccessAction(
 }
 
 /**
+ * Creates a dropdown access action
+ *
+ * @param roleCode - The role code associated with the action
+ * @param parameters - The parameters for the dropdown access action
+ * @returns {DropdownAccessAction} A new instance of DropdownAccessAction
+ */
+export function createDropdownAccessAction(
+	roleCode: string,
+	parameters: IDropdownAccessParameters,
+): DropdownAccessAction {
+	return new DropdownAccessAction(roleCode, parameters);
+}
+
+/**
+ * Creates a dropdown access permission
+ *
+ * @param target - Role or Group this permission applies to
+ * @param rules - Dropdown access rules
+ */
+export function createDropdownPermission(
+	target: Role | Group,
+	rules: IDropdownPermissionRule[],
+): DropdownAccessPermission {
+	return new DropdownAccessPermission(target, rules);
+}
+
+/**
  * Creates a component access action
  *
  * @param roleCode - The role code associated with the action
  * @param parameters - The parameters for the component access action
  * @returns {ComponentAccessAction} A new instance of ComponentAccessAction
  */
-export function createComponentAccessAction(
+export function createComponentAction(
 	roleCode: string,
 	parameters: IComponentAccessParameters,
 ): ComponentAccessAction {
