@@ -6,6 +6,10 @@ import type {
 
 import { Action, Group, Role } from "../../core";
 import { ListAccessPermission } from "../list/list-permission";
+import type {
+	ListAccessActionType,
+	ListPermissionRule,
+} from "../list/list-types";
 
 export class MenuAccessAction<
 	T = MenuAccessActionType,
@@ -21,12 +25,13 @@ export class MenuAccessAction<
 
 export class MenuAccessPermission<
 	T extends string = MenuAccessActionType,
-	R extends IMenuPermissionRule[] = IMenuPermissionRule[],
+	R extends
+		ListPermissionRule<ListAccessActionType>[] = ListPermissionRule<ListAccessActionType>[],
 	A extends Action = MenuAccessAction,
 > extends ListAccessPermission<T, R, A> {
 	constructor(
-		protected target: Group | Role,
-		protected rules: R,
+		protected target: Role | Group,
+		rules: R,
 	) {
 		super(target, "menu" as T, rules);
 	}

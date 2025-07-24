@@ -20,11 +20,11 @@ export class ComponentAccessAction extends Action<
 
 export class ComponentAccessPermission extends Permission<
 	ComponentAccessActionType,
-	IComponentPermissionRule
+	IComponentPermissionRule[]
 > {
 	constructor(
 		protected target: Group | Role,
-		protected rules: IComponentPermissionRule[],
+		rules: IComponentPermissionRule[],
 	) {
 		super(target, "component", rules);
 	}

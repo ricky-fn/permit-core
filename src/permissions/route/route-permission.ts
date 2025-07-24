@@ -7,11 +7,11 @@ import type {
 
 export class RouteAccessPermission extends Permission<
 	RouteAccessActionType,
-	IRoutePermissionRule
+	IRoutePermissionRule[]
 > {
 	constructor(
 		protected target: Role | Group,
-		protected rules: IRoutePermissionRule[],
+		rules: IRoutePermissionRule[],
 		protected middlewares: Array<
 			(permission: RouteAccessPermission, action: RouteAccessAction) => void
 		> = [],
@@ -21,7 +21,7 @@ export class RouteAccessPermission extends Permission<
 	getDefaultRoute() {
 		return this.rules.find((rule) => rule.isDefault);
 	}
-	private getRulesByAction(action: RouteAccessAction) {
+	getRulesByAction(action: RouteAccessAction) {
 		const path = action.getParameters().route;
 		let validRules: IRoutePermissionRule[] = [];
 
