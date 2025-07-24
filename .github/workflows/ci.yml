@@ -1,12 +1,12 @@
 name: CI
 
 on:
-  pull_request_review:
-    types: [ submitted ]
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
   test-unit:
-    if: github.event.review.state == 'approved'
+    if: github.event.action == 'opened' || github.event.action == 'synchronize'
     runs-on: ubuntu-latest
     env:
       TEST_ENV: review
