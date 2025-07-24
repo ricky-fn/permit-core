@@ -24,12 +24,13 @@ export class DropdownAccessAction<
 
 export class DropdownAccessPermission<
 	T extends string = DropdownAccessActionType,
-	R extends IDropdownPermissionRule[] = IDropdownPermissionRule[],
+	R extends
+		ListPermissionRule<ListAccessActionType>[] = ListPermissionRule<ListAccessActionType>[],
 	A extends Action = DropdownAccessAction,
 > extends ListAccessPermission<T, R, A> {
 	constructor(
 		protected target: Role | Group,
-		protected rules: R,
+		rules: R,
 	) {
 		super(target, "dropdown" as T, rules);
 	}
