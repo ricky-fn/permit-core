@@ -1,7 +1,15 @@
 {
 	"name": "permit-core",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Core RBAC implementation for Permit",
+	"homepage": "https://github.com/rickyjiang/permit-core#readme",
+	"bugs": {
+		"url": "https://github.com/rickyjiang/permit-core/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/rickyjiang/permit-core.git"
+	},
 	"license": "MIT",
 	"author": {
 		"name": "Ricky Jiang",
