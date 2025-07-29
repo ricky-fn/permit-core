@@ -248,3 +248,13 @@ Resolves: #123
 ## License 📄
 
 This project is licensed under the MIT License - see the [LICENSE](https://opensource.org/licenses/MIT) file for details.
+
+## Changelog 📜
+
+### v1.0.0 (Initial Release)
+
+- Core RBAC implementation
+- Role and Group management
+- Route, Component, Menu, and Dropdown permissions
+- TypeScript support
+- UML documentation
