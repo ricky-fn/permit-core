@@ -6,6 +6,10 @@ import type {
 
 import { Action, Group, Role } from "../../core";
 import { ListAccessPermission } from "../list/list-permission";
+import type {
+	ListAccessActionType,
+	ListPermissionRule,
+} from "../list/list-types";
 
 /**
  * Class representing an action for menu access.
@@ -56,7 +60,8 @@ export class MenuAccessAction<
  */
 export class MenuAccessPermission<
 	T extends string = MenuAccessActionType,
-	R extends IMenuPermissionRule[] = IMenuPermissionRule[],
+	R extends
+		ListPermissionRule<ListAccessActionType>[] = ListPermissionRule<ListAccessActionType>[],
 	A extends Action = MenuAccessAction,
 > extends ListAccessPermission<T, R, A> {
 	/**
@@ -64,8 +69,8 @@ export class MenuAccessPermission<
 	 * @param {R} rules - The rules associated with the permission.
 	 */
 	constructor(
-		protected target: Group | Role,
-		protected rules: R,
+		protected target: Role | Group,
+		rules: R,
 	) {
 		super(target, "menu" as T, rules);
 	}

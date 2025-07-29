@@ -59,7 +59,8 @@ export class DropdownAccessAction<
  */
 export class DropdownAccessPermission<
 	T extends string = DropdownAccessActionType,
-	R extends IDropdownPermissionRule[] = IDropdownPermissionRule[],
+	R extends
+		ListPermissionRule<ListAccessActionType>[] = ListPermissionRule<ListAccessActionType>[],
 	A extends Action = DropdownAccessAction,
 > extends ListAccessPermission<T, R, A> {
 	/**
@@ -67,8 +68,8 @@ export class DropdownAccessPermission<
 	 * @param {R} rules - The rules associated with the permission.
 	 */
 	constructor(
-		protected target: Group | Role,
-		protected rules: R,
+		protected target: Role | Group,
+		rules: R,
 	) {
 		super(target, "dropdown" as T, rules);
 	}

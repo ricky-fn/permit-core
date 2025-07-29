@@ -179,7 +179,10 @@ export class Action<T = string, P = object> {
 export class Group<C extends string = string> {
 	private permissions: Permission[] = [];
 	private roles: Role[] = [];
-	constructor(protected code: C) {}
+	constructor(
+		protected code: C,
+		protected inheritFrom?: Group,
+	) {}
 	/**
 	 * Assign a permission to the group.
 	 * @param {Permission} permission - The permission to assign.
@@ -240,9 +243,8 @@ export class Group<C extends string = string> {
 	 * Inherit permissions and roles from another group.
 	 * @param {Group} group - The group to inherit from.
 	 */
-	inheritFrom(group: Group) {
-		this.permissions = [...group.getPermissions()];
-		this.roles = [...group.getRoles()];
+	getInheritFrom() {
+		return this.inheritFrom;
 	}
 }
 
@@ -251,18 +253,41 @@ export class Group<C extends string = string> {
  * @template T
  * @template R
  */
-export abstract class Permission<T = string, R = unknown> {
+
+export abstract class Permission<T = string, R extends unknown[] = unknown[]> {
+	rules: R;
 	/**
 	 * @param {Group | Role} target - The target of the permission (group or role).
 	 * @param {T} type - The type of the permission.
 	 * @param {R[]} rules - The rules associated with the permission.
 	 */
 	constructor(
-		protected target: Group | Role,
+		protected target: Role | Group,
 		protected type: T,
-		protected rules: R[],
+		rules: R,
 	) {
 		target.assignPermission(this as unknown as Permission);
+
+		let combinedRules = [];
+		if (this.target instanceof Role && this.target.getGroup()) {
+			const inheritedRules = this.target
+				.getGroup()!
+				.getPermissions(this.type as string)
+				.map((permission) => permission.getRules())
+				.flat();
+			combinedRules = [...inheritedRules, ...rules];
+		} else if (this.target instanceof Group && this.target.getInheritFrom()) {
+			const inheritedRules = this.target
+				.getInheritFrom()!
+				.getPermissions(this.type as string)
+				.map((permission) => permission.getRules())
+				.flat();
+			combinedRules = [...inheritedRules, ...rules];
+		} else {
+			combinedRules = [...rules];
+		}
+
+		this.rules = combinedRules as R;
 	}
 
 	/**
@@ -281,7 +306,7 @@ export abstract class Permission<T = string, R = unknown> {
 	 * Get the rules associated with the permission.
 	 * @returns {R[]} An array of rules.
 	 */
-	getRules(): R[] {
+	getRules(): R {
 		return this.rules;
 	}
 
@@ -299,6 +324,25 @@ export abstract class Permission<T = string, R = unknown> {
 	 */
 	getType(): T {
 		return this.type;
+	}
+
+	/**
+	 * Retrieves the rules inherited from a parent group if the target is a group and inheritance is enabled.
+	 * This method checks if the target is a `Group` instance and if it has a parent group (`inheritFrom`).
+	 * If so, it collects the rules from the parent group's permissions of the same type and returns them.
+	 * If no inheritance is found, it returns an empty array.
+	 *
+	 * @returns {R} An array of rules inherited from the parent group, or an empty array if no inheritance exists.
+	 */
+	getRulesByGroupInheritance(): R {
+		if (this.target instanceof Group && this.target.getInheritFrom()) {
+			const inheritedPermissions =
+				this.target.getInheritFrom()?.getPermissions(this.type as string) || [];
+			return inheritedPermissions
+				.map((permission) => permission.getRules())
+				.flat() as R;
+		}
+		return [] as unknown as R;
 	}
 
 	/**

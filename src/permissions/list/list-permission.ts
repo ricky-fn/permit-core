@@ -59,18 +59,65 @@ export class ListAccessPermission<
 	R extends
 		ListPermissionRule<ListAccessActionType>[] = ListPermissionRule<ListAccessActionType>[],
 	A extends Action = ListAccessAction,
-> extends Permission {
+> extends Permission<T, R> {
 	/**
 	 * @param {Group | Role} target - The target group or role for the permission.
 	 * @param {T} type - The type of the action.
 	 * @param {R} rules - The rules associated with the permission.
 	 */
 	constructor(
-		protected target: Group | Role,
-		protected type: T,
-		protected rules: R,
+		protected target: Role | Group,
+		protected type: T = "list" as T,
+		rules: R,
 	) {
-		super(target, "list", rules);
+		super(target, type, rules);
+	}
+	validate(action: A) {
+		if (action.getType() !== this.type) {
+			return new PermissionMessage({
+				status: "failed",
+				message: "action type doesn't match the permission type",
+				target: this.target,
+				action,
+			});
+		}
+
+		const matchedRules = this.getRulesByAction(action);
+
+		if (matchedRules.length === 0) {
+			return new PermissionMessage({
+				status: "failed",
+				message: `No access permission for menu '${(action.getParameters() as ListAccessParameters<string>).identifier}'`,
+				target: this.target,
+				action,
+			});
+		}
+	}
+	getRulesByAction(action: A) {
+		const accessIdentifier = (
+			action.getParameters() as ListAccessParameters<string>
+		).identifier;
+		const validRules: ListPermissionRule<ListAccessActionType>[] = [];
+
+		for (const rule of this.rules) {
+			let identifierMatchedRule:
+				| ListPermissionRule<ListAccessActionType>
+				| undefined = undefined;
+			if (
+				rule.identifier instanceof RegExp &&
+				rule.identifier.test(accessIdentifier)
+			) {
+				identifierMatchedRule = rule;
+			} else if (rule.identifier === accessIdentifier) {
+				identifierMatchedRule = rule;
+			}
+
+			if (identifierMatchedRule) {
+				validRules.push(identifierMatchedRule);
+			}
+		}
+
+		return validRules;
 	}
 
 	/**
@@ -82,7 +129,7 @@ export class ListAccessPermission<
 		let accessibleList: string[] = [];
 		const actionParameters =
 			action.getParameters() as ListAccessParameters<string>;
-		const requestedList = actionParameters[action.getType()];
+		const requestedList = actionParameters[this.getType()];
 
 		if (this.target instanceof Group) {
 			const rules: ListPermissionRule<ListAccessActionType>[] =
@@ -98,10 +145,10 @@ export class ListAccessPermission<
 						if (!rule.exclude) {
 							accessibleList.push(requestList);
 						} else {
-							accessibleList = accessibleList.filter((list) => {
+							accessibleList = accessibleList.filter((item) => {
 								return (
-									(ruleList instanceof RegExp && !ruleList.test(list)) ||
-									(ruleList instanceof Array && !ruleList.includes(list))
+									(ruleList instanceof RegExp && !ruleList.test(item)) ||
+									(ruleList instanceof Array && !ruleList.includes(item))
 								);
 							});
 						}
@@ -125,10 +172,10 @@ export class ListAccessPermission<
 						if (!rule.exclude) {
 							roleAccessibleList.push(requestList);
 						} else {
-							roleAccessibleList = roleAccessibleList.filter((list) => {
+							roleAccessibleList = roleAccessibleList.filter((item) => {
 								return (
-									(ruleList instanceof RegExp && !ruleList.test(list)) ||
-									(ruleList instanceof Array && !ruleList.includes(list))
+									(ruleList instanceof RegExp && !ruleList.test(item)) ||
+									(ruleList instanceof Array && !ruleList.includes(item))
 								);
 							});
 						}
@@ -158,64 +205,5 @@ export class ListAccessPermission<
 		}
 
 		return accessibleList;
-	}
-
-	/**
-	 * Get the rules that match the action.
-	 * @param {A} action - The action to check against the rules.
-	 * @returns {ListPermissionRule<ListAccessActionType>[]} An array of valid rules for the action.
-	 */
-	getRulesByAction(action: A) {
-		const accessIdentifier = (
-			action.getParameters() as ListAccessParameters<string>
-		).identifier;
-		const validRules: ListPermissionRule<ListAccessActionType>[] = [];
-
-		for (const rule of this.rules) {
-			let identifierMatchedRule:
-				| ListPermissionRule<ListAccessActionType>
-				| undefined = undefined;
-			if (
-				rule.identifier instanceof RegExp &&
-				rule.identifier.test(accessIdentifier)
-			) {
-				identifierMatchedRule = rule;
-			} else if (rule.identifier === accessIdentifier) {
-				identifierMatchedRule = rule;
-			}
-
-			if (identifierMatchedRule) {
-				validRules.push(identifierMatchedRule);
-			}
-		}
-
-		return validRules;
-	}
-
-	/**
-	 * Validate the action against the permission rules.
-	 * @param {A} action - The action to validate.
-	 * @returns {PermissionMessage | undefined} A message indicating the validation result or undefined if valid.
-	 */
-	validate(action: A) {
-		if (action.getType() !== this.type) {
-			return new PermissionMessage({
-				action,
-				message: "action type doesn't match the permission type",
-				status: "failed",
-				target: this.target,
-			});
-		}
-
-		const matchedRules = this.getRulesByAction(action);
-
-		if (matchedRules.length === 0) {
-			return new PermissionMessage({
-				action,
-				message: `No access permission for ${action.getType()} '${(action.getParameters() as ListAccessParameters<string>).identifier}'`,
-				status: "failed",
-				target: this.target,
-			});
-		}
 	}
 }

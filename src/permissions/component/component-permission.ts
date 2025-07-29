@@ -53,7 +53,7 @@ export class ComponentAccessAction extends Action<
  */
 export class ComponentAccessPermission extends Permission<
 	ComponentAccessActionType,
-	IComponentPermissionRule
+	IComponentPermissionRule[]
 > {
 	/**
 	 * @param {Group | Role} target - The target group or role for the permission.
@@ -61,7 +61,7 @@ export class ComponentAccessPermission extends Permission<
 	 */
 	constructor(
 		protected target: Group | Role,
-		protected rules: IComponentPermissionRule[],
+		rules: IComponentPermissionRule[],
 	) {
 		super(target, "component", rules);
 	}

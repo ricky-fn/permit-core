@@ -26,7 +26,7 @@ import type {
  */
 export class RouteAccessPermission extends Permission<
 	RouteAccessActionType,
-	IRoutePermissionRule
+	IRoutePermissionRule[]
 > {
 	/**
 	 * @param {Role | Group} target - The target role or group for the permission.
@@ -35,7 +35,7 @@ export class RouteAccessPermission extends Permission<
 	 */
 	constructor(
 		protected target: Role | Group,
-		protected rules: IRoutePermissionRule[],
+		rules: IRoutePermissionRule[],
 		protected middlewares: Array<
 			(permission: RouteAccessPermission, action: RouteAccessAction) => void
 		> = [],
@@ -56,7 +56,7 @@ export class RouteAccessPermission extends Permission<
 	 * @param {RouteAccessAction} action - The action to check against the rules.
 	 * @returns {IRoutePermissionRule[]} An array of valid rules for the action.
 	 */
-	private getRulesByAction(action: RouteAccessAction) {
+	getRulesByAction(action: RouteAccessAction) {
 		const path = action.getParameters().route;
 		let validRules: IRoutePermissionRule[] = [];
 
