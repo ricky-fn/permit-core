@@ -1,20 +1,26 @@
 {
 	"name": "permit-core",
-	"version": "0.0.3",
-	"description": "",
+	"version": "1.0.0",
+	"description": "Core RBAC implementation for Permit",
+	"homepage": "https://github.com/ricky-fn/permit-core#readme",
+	"bugs": {
+		"url": "https://github.com/ricky-fn/permit-core/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ricky-fn/permit-core.git"
+	},
 	"license": "MIT",
 	"author": {
 		"name": "Ricky Jiang",
 		"email": "ricky.jc2022@gmail.com"
 	},
 	"type": "module",
-	"main": "lib/index.js",
-	"bin": "bin/index.js",
+	"main": "src/index.ts",
 	"files": [
 		"LICENSE.md",
 		"README.md",
-		"bin/index.js",
-		"lib/",
+		"lib/index.js",
 		"package.json"
 	],
 	"scripts": {
@@ -123,6 +129,7 @@
 		"node": ">=20.19.0"
 	},
 	"publishConfig": {
-		"provenance": true
-	}
+		"access": "public"
+	},
+	"lib": "lib/index.js"
 }
