@@ -104,7 +104,7 @@ export function createAccessControl(config: {
 	roles: Role[];
 	groups?: Group[];
 }): AccessControl {
-	return new AccessControl(config.roles);
+	return new AccessControl(config.roles, config.groups ?? []);
 }
 
 /**
