@@ -16,12 +16,12 @@
 		"email": "ricky.jc2022@gmail.com"
 	},
 	"type": "module",
-	"main": "src/index.ts",
+	"main": "lib/index.js",
+	"types": "lib/index.d.ts",
 	"files": [
 		"LICENSE.md",
 		"README.md",
-		"lib/index.js",
-		"package.json"
+		"lib/**/*"
 	],
 	"scripts": {
 		"build": "tsdown",
@@ -32,6 +32,7 @@
 		"lint:packages": "pnpm dedupe --check",
 		"lint:spelling": "cspell \"**\" \".github/**/*\"",
 		"prepare": "husky",
+		"prepublishOnly": "pnpm run build",
 		"test": "vitest",
 		"test:coverage": "vitest run --coverage",
 		"tsc": "tsc"
