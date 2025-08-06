@@ -85,8 +85,8 @@ export function createRole(code: string): Role {
  * @param code - The code of the group
  * @returns {Group} A new instance of Group
  */
-export function createGroup(code: string): Group {
-	return new Group(code);
+export function createGroup(code: string, inheritFrom?: Group): Group {
+	return new Group(code, inheritFrom);
 }
 
 /**
@@ -104,7 +104,7 @@ export function createAccessControl(config: {
 	roles: Role[];
 	groups?: Group[];
 }): AccessControl {
-	return new AccessControl(config.roles);
+	return new AccessControl(config.roles, config.groups ?? []);
 }
 
 /**

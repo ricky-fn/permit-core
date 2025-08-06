@@ -251,6 +251,10 @@ This project is licensed under the MIT License - see the [LICENSE](https://opens
 
 ## Changelog 📜
 
+### v1.1.0
+
+- **New Feature**: Enhanced `AccessControl` to support groups with new methods for adding and retrieving groups
+
 ### v1.0.0 (Initial Release)
 
 - Core RBAC implementation

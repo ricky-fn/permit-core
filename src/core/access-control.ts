@@ -3,30 +3,90 @@ import {
 	PermissionMessage,
 } from "./permission-message.js";
 
-interface IPermissionCallbacks<A> {
+/**
+ * Interface for permission callbacks.
+ * @template A
+ */
+interface IPermissionCallbacks<A extends Action> {
+	/**
+	 * Callback for when an action fails.
+	 * @param {A} action - The action that failed.
+	 * @param {IPermissionMessage} message - The message associated with the failure.
+	 */
 	onFailure?: (action: A, message: IPermissionMessage) => void;
+
+	/**
+	 * Callback for when an action succeeds.
+	 * @param {A} action - The action that succeeded.
+	 */
 	onSuccess: (action: A) => void;
 }
 
+/**
+ * Abstract class for role-based access control.
+ */
 abstract class RoleAccessControl {
-	constructor(protected roles: Role[]) {}
+	/**
+	 * @param {Role[]} roles - The roles associated with this access control.
+	 * @param {Group[]} groups - The groups associated with this access control.
+	 */
+	constructor(
+		protected roles: Role[],
+		protected groups: Group[],
+	) {}
 
-	// Allow developer to add role
+	/**
+	 * Allow developer to add a role.
+	 * @param {Role} role - The role to add.
+	 */
 	abstract addRole(role: Role): void;
 
-	// Checking Permissions
+	/**
+	 * Allow developer to add a group.
+	 * @param {Group} group - The group to add.
+	 */
+	abstract addGroup(group: Group): void;
+
+	/**
+	 * Check permissions for a given action.
+	 * @param {Action} action - The action to check permissions for.
+	 * @param {IPermissionCallbacks<Action>} callbacks - Callbacks for success and failure.
+	 */
 	abstract checkPermissions(
 		action: Action,
 		callbacks: IPermissionCallbacks<Action>,
 	): void;
 }
 
+/**
+ * Class for managing access control.
+ */
 export class AccessControl extends RoleAccessControl {
+	/**
+	 * Add a role to the access control.
+	 * @param {Role} role - The role to add.
+	 */
 	addRole(role: Role) {
 		if (!this.roles.includes(role)) {
 			this.roles.push(role);
 		}
 	}
+
+	/**
+	 * Add a group to the access control.
+	 * @param {Group} group - The group to add.
+	 */
+	addGroup(group: Group) {
+		if (!this.groups.includes(group)) {
+			this.groups.push(group);
+		}
+	}
+
+	/**
+	 * Check permissions for a given action.
+	 * @param {A extends Action} action - The action to check permissions for.
+	 * @param {IPermissionCallbacks<A>} callbacks - Callbacks for success and failure.
+	 */
 	checkPermissions<A extends Action>(
 		action: A,
 		callbacks: IPermissionCallbacks<A>,
@@ -71,43 +131,108 @@ export class AccessControl extends RoleAccessControl {
 
 		callbacks.onSuccess(action);
 	}
+
+	/**
+	 * Get a role by its code.
+	 * @param {string} roleCode - The code of the role to retrieve.
+	 * @returns {Role | undefined} The role associated with the code, or undefined if not found.
+	 */
 	getRoleByCode(roleCode: string) {
 		return this.roles.find((role) => role.getCode() === roleCode);
 	}
+
+	/**
+	 * Get all roles associated with this access control.
+	 * @returns {Role[]} An array of roles.
+	 */
 	getRoles() {
 		return this.roles;
 	}
+
+	/**
+	 * Get all groups associated with this access control.
+	 * @returns {Group[]} An array of groups.
+	 */
+	getGroups() {
+		return this.groups;
+	}
+
+	/**
+	 * Get a group by its code.
+	 * @param {string} groupCode - The code of the group to retrieve.
+	 * @returns {Group | undefined} The group associated with the code, or undefined if not found.
+	 */
+	getGroupByCode(groupCode: string) {
+		return this.groups.find((group) => group.getCode() === groupCode);
+	}
 }
 
+/**
+ * Class representing an action.
+ * @template T
+ * @template P
+ */
 export class Action<T = string, P = object> {
+	/**
+	 * @param {string} roleCode - The code of the role associated with the action.
+	 * @param {T} type - The type of the action.
+	 * @param {P} parameters - The parameters associated with the action.
+	 */
 	constructor(
 		protected roleCode: string,
 		protected type: T,
 		protected parameters: P,
 	) {}
 
+	/**
+	 * Get the parameters of the action.
+	 * @returns {P} The parameters.
+	 */
 	getParameters(): P {
 		return this.parameters;
 	}
 
+	/**
+	 * Get the role code associated with the action.
+	 * @returns {string} The role code.
+	 */
 	getRoleCode(): string {
 		return this.roleCode;
 	}
 
+	/**
+	 * Get the type of the action.
+	 * @returns {T} The type.
+	 */
 	getType(): T {
 		return this.type;
 	}
 }
 
+/**
+ * Class representing a group of roles.
+ * @template C
+ */
 export class Group<C extends string = string> {
 	private permissions: Permission[] = [];
 	private roles: Role[] = [];
-	constructor(protected code: C) {}
+	constructor(
+		protected code: C,
+		protected inheritFrom?: Group,
+	) {}
+	/**
+	 * Assign a permission to the group.
+	 * @param {Permission} permission - The permission to assign.
+	 */
 	assignPermission(permission: Permission): void {
 		if (!this.permissions.includes(permission)) {
 			this.permissions.push(permission);
 		}
 	}
+	/**
+	 * Assign a role to the group.
+	 * @param {Role} role - The role to assign.
+	 */
 	assignRole(role: Role): void {
 		const group = role.getGroup();
 		if (group) {
@@ -120,34 +245,93 @@ export class Group<C extends string = string> {
 			role.assignGroup(this);
 		}
 	}
+	/**
+	 * Exclude a role from the group.
+	 * @param {Role} role - The role to exclude.
+	 */
 	excludeRole(role: Role) {
 		this.roles = this.roles.filter((_role) => _role !== role);
 	}
+	/**
+	 * Get the code of the group.
+	 * @returns {C} The code.
+	 */
 	getCode() {
 		return this.code;
 	}
+	/**
+	 * Get permissions associated with the group.
+	 * @param {string} [type] - Optional type to filter permissions.
+	 * @returns {Permission[]} An array of permissions.
+	 */
 	getPermissions(type?: string) {
 		return type
 			? this.permissions.filter((permission) => permission.getType() === type)
 			: this.permissions;
 	}
+	/**
+	 * Get all roles associated with the group.
+	 * @returns {Role[]} An array of roles.
+	 */
 	getRoles(): Role[] {
 		return this.roles;
 	}
-	inheritFrom(group: Group) {
-		this.permissions = [...group.getPermissions()];
-		this.roles = [...group.getRoles()];
+	/**
+	 * Inherit permissions and roles from another group.
+	 * @param {Group} group - The group to inherit from.
+	 */
+	getInheritFrom() {
+		return this.inheritFrom;
 	}
 }
-export abstract class Permission<T = string, R = unknown> {
+
+/**
+ * Abstract class representing a permission.
+ * @template T
+ * @template R
+ */
+
+export abstract class Permission<T = string, R extends unknown[] = unknown[]> {
+	rules: R;
+	/**
+	 * @param {Group | Role} target - The target of the permission (group or role).
+	 * @param {T} type - The type of the permission.
+	 * @param {R[]} rules - The rules associated with the permission.
+	 */
 	constructor(
-		protected target: Group | Role,
+		protected target: Role | Group,
 		protected type: T,
-		protected rules: R[],
+		rules: R,
 	) {
 		target.assignPermission(this as unknown as Permission);
+
+		let combinedRules = [];
+		if (this.target instanceof Role && this.target.getGroup()) {
+			const inheritedRules = this.target
+				.getGroup()!
+				.getPermissions(this.type as string)
+				.map((permission) => permission.getRules())
+				.flat();
+			combinedRules = [...inheritedRules, ...rules];
+		} else if (this.target instanceof Group && this.target.getInheritFrom()) {
+			const inheritedRules = this.target
+				.getInheritFrom()!
+				.getPermissions(this.type as string)
+				.map((permission) => permission.getRules())
+				.flat();
+			combinedRules = [...inheritedRules, ...rules];
+		} else {
+			combinedRules = [...rules];
+		}
+
+		this.rules = combinedRules as R;
 	}
 
+	/**
+	 * Add a rule to the permission.
+	 * @param {R} rule - The rule to add.
+	 * @returns {this} The current instance for chaining.
+	 */
 	addRule(rule: R): this {
 		if (this.rules instanceof Array) {
 			this.rules.push(rule);
@@ -155,21 +339,62 @@ export abstract class Permission<T = string, R = unknown> {
 		return this;
 	}
 
-	getRules(): R[] {
+	/**
+	 * Get the rules associated with the permission.
+	 * @returns {R[]} An array of rules.
+	 */
+	getRules(): R {
 		return this.rules;
 	}
 
+	/**
+	 * Get the target of the permission.
+	 * @returns {Group | Role} The target.
+	 */
 	getTarget() {
 		return this.target;
 	}
 
+	/**
+	 * Get the type of the permission.
+	 * @returns {T} The type.
+	 */
 	getType(): T {
 		return this.type;
 	}
 
+	/**
+	 * Retrieves the rules inherited from a parent group if the target is a group and inheritance is enabled.
+	 * This method checks if the target is a `Group` instance and if it has a parent group (`inheritFrom`).
+	 * If so, it collects the rules from the parent group's permissions of the same type and returns them.
+	 * If no inheritance is found, it returns an empty array.
+	 *
+	 * @returns {R} An array of rules inherited from the parent group, or an empty array if no inheritance exists.
+	 */
+	getRulesByGroupInheritance(): R {
+		if (this.target instanceof Group && this.target.getInheritFrom()) {
+			const inheritedPermissions =
+				this.target.getInheritFrom()?.getPermissions(this.type as string) || [];
+			return inheritedPermissions
+				.map((permission) => permission.getRules())
+				.flat() as R;
+		}
+		return [] as unknown as R;
+	}
+
+	/**
+	 * Validate an action against the permission.
+	 * @param {Action} action - The action to validate.
+	 * @returns {IPermissionMessage | undefined} The validation message or undefined if valid.
+	 */
 	abstract validate(action: Action): IPermissionMessage | undefined;
 }
 
+/**
+ * Class representing a role.
+ * @template C
+ * @template T
+ */
 export class Role<C extends string = string, T = unknown> {
 	private group?: Group;
 	private permissions: Permission[] = [];
@@ -178,6 +403,10 @@ export class Role<C extends string = string, T = unknown> {
 		protected config?: T,
 	) {}
 
+	/**
+	 * Assign a group to the role.
+	 * @param {Group} group - The group to assign.
+	 */
 	assignGroup(group: Group) {
 		if (!this.group) {
 			this.group = group;
@@ -188,6 +417,10 @@ export class Role<C extends string = string, T = unknown> {
 		}
 	}
 
+	/**
+	 * Assign a permission to the role.
+	 * @param {Permission} permission - The permission to assign.
+	 */
 	assignPermission(permission: Permission) {
 		if (!this.permissions.includes(permission)) {
 			if (this.group) {
@@ -200,18 +433,35 @@ export class Role<C extends string = string, T = unknown> {
 		}
 	}
 
+	/**
+	 * Get the code of the role.
+	 * @returns {C} The code.
+	 */
 	getCode(): C {
 		return this.code;
 	}
 
+	/**
+	 * Get the configuration of the role.
+	 * @returns {T | undefined} The configuration or undefined if not set.
+	 */
 	getConfig(): T | undefined {
 		return this.config;
 	}
 
+	/**
+	 * Get the group associated with the role.
+	 * @returns {Group | undefined} The group or undefined if not assigned.
+	 */
 	getGroup() {
 		return this.group;
 	}
 
+	/**
+	 * Get permissions associated with the role.
+	 * @param {string} [type] - Optional type to filter permissions.
+	 * @returns {Permission[]} An array of permissions.
+	 */
 	getPermissions(type?: string) {
 		const rolePermissions = type
 			? this.permissions.filter((permission) => permission.getType() === type)
@@ -221,6 +471,9 @@ export class Role<C extends string = string, T = unknown> {
 		return [...groupPermissions, ...rolePermissions];
 	}
 
+	/**
+	 * Reset the group associated with the role.
+	 */
 	resetGroup() {
 		this.group = undefined;
 	}
