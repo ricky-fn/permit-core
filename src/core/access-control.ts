@@ -28,14 +28,24 @@ interface IPermissionCallbacks<A extends Action> {
 abstract class RoleAccessControl {
 	/**
 	 * @param {Role[]} roles - The roles associated with this access control.
+	 * @param {Group[]} groups - The groups associated with this access control.
 	 */
-	constructor(protected roles: Role[]) {}
+	constructor(
+		protected roles: Role[],
+		protected groups: Group[],
+	) {}
 
 	/**
 	 * Allow developer to add a role.
 	 * @param {Role} role - The role to add.
 	 */
 	abstract addRole(role: Role): void;
+
+	/**
+	 * Allow developer to add a group.
+	 * @param {Group} group - The group to add.
+	 */
+	abstract addGroup(group: Group): void;
 
 	/**
 	 * Check permissions for a given action.
@@ -59,6 +69,16 @@ export class AccessControl extends RoleAccessControl {
 	addRole(role: Role) {
 		if (!this.roles.includes(role)) {
 			this.roles.push(role);
+		}
+	}
+
+	/**
+	 * Add a group to the access control.
+	 * @param {Group} group - The group to add.
+	 */
+	addGroup(group: Group) {
+		if (!this.groups.includes(group)) {
+			this.groups.push(group);
 		}
 	}
 
@@ -127,6 +147,23 @@ export class AccessControl extends RoleAccessControl {
 	 */
 	getRoles() {
 		return this.roles;
+	}
+
+	/**
+	 * Get all groups associated with this access control.
+	 * @returns {Group[]} An array of groups.
+	 */
+	getGroups() {
+		return this.groups;
+	}
+
+	/**
+	 * Get a group by its code.
+	 * @param {string} groupCode - The code of the group to retrieve.
+	 * @returns {Group | undefined} The group associated with the code, or undefined if not found.
+	 */
+	getGroupByCode(groupCode: string) {
+		return this.groups.find((group) => group.getCode() === groupCode);
 	}
 }
 
