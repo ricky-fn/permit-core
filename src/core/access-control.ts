@@ -332,10 +332,8 @@ export abstract class Permission<T = string, R extends unknown[] = unknown[]> {
 	 * @param {R} rule - The rule to add.
 	 * @returns {this} The current instance for chaining.
 	 */
-	addRule(rule: R): this {
-		if (this.rules instanceof Array) {
-			this.rules.push(rule);
-		}
+	addRule(rule: R[number]): this {
+		this.rules.push(rule);
 		return this;
 	}
 
