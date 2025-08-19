@@ -264,10 +264,12 @@ export class Group<C extends string = string> {
 	 * @param {string} [type] - Optional type to filter permissions.
 	 * @returns {Permission[]} An array of permissions.
 	 */
-	getPermissions(type?: string) {
+	getPermissions<P extends Permission = Permission>(type?: string): P[] {
 		return type
-			? this.permissions.filter((permission) => permission.getType() === type)
-			: this.permissions;
+			? (this.permissions.filter(
+					(permission) => permission.getType() === type,
+				) as P[])
+			: (this.permissions as P[]);
 	}
 	/**
 	 * Get all roles associated with the group.
@@ -460,11 +462,15 @@ export class Role<C extends string = string, T = unknown> {
 	 * @param {string} [type] - Optional type to filter permissions.
 	 * @returns {Permission[]} An array of permissions.
 	 */
-	getPermissions(type?: string) {
+	getPermissions<P extends Permission = Permission>(type?: string): P[] {
 		const rolePermissions = type
-			? this.permissions.filter((permission) => permission.getType() === type)
-			: this.permissions;
-		const groupPermissions = this.group ? this.group.getPermissions(type) : [];
+			? (this.permissions.filter(
+					(permission) => permission.getType() === type,
+				) as P[])
+			: (this.permissions as P[]);
+		const groupPermissions = this.group
+			? (this.group.getPermissions(type) as P[])
+			: [];
 
 		return [...groupPermissions, ...rolePermissions];
 	}
