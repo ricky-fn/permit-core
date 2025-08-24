@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
 	createAccessControl,
-	createComponentAction,
+	createComponentAccessAction,
 	createComponentPermission,
 	createDropdownAccessAction,
 	createDropdownPermission,
@@ -54,7 +54,7 @@ describe("AccessControl Integration", () => {
 		const routeAction = createRouteAccessAction(adminRole.getCode(), {
 			route: "/dashboard",
 		});
-		const compAction = createComponentAction(adminRole.getCode(), {
+		const compAction = createComponentAccessAction(adminRole.getCode(), {
 			action: "view",
 			identifier: "dashboard",
 		});
