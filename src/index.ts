@@ -204,7 +204,7 @@ export function createDropdownPermission(
  * @param parameters - The parameters for the component access action
  * @returns {ComponentAccessAction} A new instance of ComponentAccessAction
  */
-export function createComponentAction(
+export function createComponentAccessAction(
 	roleCode: string,
 	parameters: IComponentAccessParameters,
 ): ComponentAccessAction {
