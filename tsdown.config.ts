@@ -5,4 +5,5 @@ export default defineConfig({
 	entry: "./src/index.ts",
 	outDir: "lib",
 	name: "permit-core",
+	sourcemap: true,
 });
