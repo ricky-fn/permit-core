@@ -119,12 +119,10 @@ export class AccessControl extends RoleAccessControl {
 
 		for (const permission of matchingPermissions) {
 			const result = permission.validate(action);
-			if (
-				result instanceof PermissionMessage &&
-				result.status === "failed" &&
-				callbacks.onFailure
-			) {
-				callbacks.onFailure(action, result);
+			if (result instanceof PermissionMessage && result.status === "failed") {
+				if (callbacks.onFailure) {
+					callbacks.onFailure(action, result);
+				}
 				return;
 			}
 		}
