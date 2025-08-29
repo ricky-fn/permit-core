@@ -251,6 +251,10 @@ This project is licensed under the MIT License - see the [LICENSE](https://opens
 
 ## Changelog 📜
 
+### v1.2.0
+
+- **Change**: Updated permission inheritance logic. Previously, both the group and the role had to contain the permission and rule for an action to be allowed. Now, if a group contains the permission, roles assigned to that group will inherit it; the role no longer needs to duplicate the same permission/rule.
+
 ### v1.1.0
 
 - **New Feature**: Enhanced `AccessControl` to support groups with new methods for adding and retrieving groups
