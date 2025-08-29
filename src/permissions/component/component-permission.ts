@@ -103,7 +103,7 @@ export class ComponentAccessPermission extends Permission<
 		const accessAction = action.getParameters().action;
 		let validRules: IComponentPermissionRule[] = [];
 
-		for (const rule of this.rules) {
+		for (const rule of this.getRules()) {
 			let validRule: IComponentPermissionRule | undefined = undefined;
 			if (
 				rule.identifier instanceof RegExp &&
@@ -116,8 +116,7 @@ export class ComponentAccessPermission extends Permission<
 
 			if (validRule?.actions.includes(accessAction)) {
 				if (validRule.exclude) {
-					validRules = [];
-					continue;
+					return [];
 				}
 				validRules.push(validRule);
 			}

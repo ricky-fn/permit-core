@@ -89,7 +89,10 @@ describe("AccessControl Integration", () => {
 		const adminRole = createRole("ADMIN");
 		const group = createGroup("GROUP");
 
-		const accessControl = createAccessControl({ roles: [adminRole] });
+		const accessControl = createAccessControl({
+			roles: [adminRole],
+			groups: [group],
+		});
 
 		createRoutePermission(group, [
 			{
@@ -155,7 +158,10 @@ describe("AccessControl Integration", () => {
 		const adminRole = createRole("ADMIN");
 		const group = createGroup("GROUP");
 
-		const accessControl = createAccessControl({ roles: [adminRole] });
+		const accessControl = createAccessControl({
+			roles: [adminRole],
+			groups: [group],
+		});
 
 		createRoutePermission(group, [
 			{
@@ -225,5 +231,49 @@ describe("AccessControl Integration", () => {
 
 		expect(routeSuccess).not.toHaveBeenCalled();
 		expect(routeFailure).toHaveBeenCalled();
+	});
+
+	it("should have permissions from group A to group B and role A", () => {
+		const groupA = createGroup("GROUP_A");
+		const groupB = createGroup("GROUP_B", groupA);
+
+		const adminRole = createRole("ADMIN");
+
+		createMenuPermission(groupA, [
+			{
+				identifier: "menu",
+				list: ["a"],
+			},
+		]);
+
+		createMenuPermission(groupB, [
+			{
+				identifier: "menu",
+				list: ["b"],
+			},
+		]);
+
+		const menuPermission = createMenuPermission(adminRole, [
+			{
+				identifier: "menu",
+				list: ["c"],
+			},
+		]);
+
+		adminRole.assignGroup(groupB);
+
+		const accessControl = createAccessControl({
+			roles: [adminRole],
+			groups: [groupA, groupB],
+		});
+
+		const menuAction = createMenuAccessAction(adminRole.getCode(), {
+			identifier: "menu",
+			menu: ["a", "b", "c"],
+		});
+
+		const accessibleList = menuPermission.getAccessibleList(menuAction);
+
+		expect(accessibleList).toEqual(["a", "b", "c"]);
 	});
 });

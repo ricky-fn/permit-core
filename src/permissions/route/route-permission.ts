@@ -48,7 +48,7 @@ export class RouteAccessPermission extends Permission<
 	 * @returns {IRoutePermissionRule | undefined} The default route rule or undefined if not found.
 	 */
 	getDefaultRoute() {
-		return this.rules.find((rule) => rule.isDefault);
+		return this.getRules().find((rule) => rule.isDefault);
 	}
 
 	/**
@@ -60,17 +60,17 @@ export class RouteAccessPermission extends Permission<
 		const path = action.getParameters().route;
 		let validRules: IRoutePermissionRule[] = [];
 
-		for (const rule of this.rules) {
+		for (const rule of this.getRules()) {
 			if (rule.route instanceof RegExp && rule.route.test(path)) {
 				if (rule.exclude) {
 					validRules = [];
-					continue; // if the exclude flag exists then reset the validRules to an empty array
+					break; // if the exclude flag exists then reset the validRules to an empty array
 				}
 				validRules.push(rule);
 			} else if (rule.route === path) {
 				if (rule.exclude) {
 					validRules = [];
-					continue;
+					break;
 				}
 				validRules.push(rule);
 			}
