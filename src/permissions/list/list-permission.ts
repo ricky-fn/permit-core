@@ -93,13 +93,14 @@ export class ListAccessPermission<
 			});
 		}
 	}
+
 	getRulesByAction(action: A) {
 		const accessIdentifier = (
 			action.getParameters() as ListAccessParameters<string>
 		).identifier;
-		const validRules: ListPermissionRule<ListAccessActionType>[] = [];
+		let validRules: ListPermissionRule<ListAccessActionType>[] = [];
 
-		for (const rule of this.rules) {
+		for (const rule of this.getRules()) {
 			let identifierMatchedRule:
 				| ListPermissionRule<ListAccessActionType>
 				| undefined = undefined;
@@ -125,85 +126,37 @@ export class ListAccessPermission<
 	 * @param {A} action - The action to validate against the rules.
 	 * @returns {string[]} An array of accessible list items.
 	 */
+
 	getAccessibleList(action: A) {
-		let accessibleList: string[] = [];
 		const actionParameters =
 			action.getParameters() as ListAccessParameters<string>;
 		const requestedList = actionParameters[this.getType()];
 
-		if (this.target instanceof Group) {
-			const rules: ListPermissionRule<ListAccessActionType>[] =
-				this.getRulesByAction(action);
+		const rules: ListPermissionRule<ListAccessActionType>[] =
+			this.getRulesByAction(action);
+		let roleAccessibleList: string[] = [];
 
-			rules.forEach((rule) => {
-				requestedList.forEach((requestList) => {
-					const ruleList = rule.list;
-					if (
-						(ruleList instanceof RegExp && ruleList.test(requestList)) ||
-						(ruleList instanceof Array && ruleList.includes(requestList))
-					) {
-						if (!rule.exclude) {
-							accessibleList.push(requestList);
-						} else {
-							accessibleList = accessibleList.filter((item) => {
-								return (
-									(ruleList instanceof RegExp && !ruleList.test(item)) ||
-									(ruleList instanceof Array && !ruleList.includes(item))
-								);
-							});
-						}
+		for (const rule of rules) {
+			for (const item of requestedList) {
+				const ruleList = rule.list;
+				if (
+					(ruleList instanceof RegExp && ruleList.test(item)) ||
+					(ruleList instanceof Array && ruleList.includes(item))
+				) {
+					if (!rule.exclude) {
+						roleAccessibleList.push(item);
+					} else {
+						roleAccessibleList = roleAccessibleList.filter((item) => {
+							return (
+								(ruleList instanceof RegExp && !ruleList.test(item)) ||
+								(ruleList instanceof Array && !ruleList.includes(item))
+							);
+						});
 					}
-				});
-			});
-		}
-
-		if (this.target instanceof Role) {
-			const rules: ListPermissionRule<ListAccessActionType>[] =
-				this.getRulesByAction(action);
-			let roleAccessibleList: string[] = [];
-
-			rules.forEach((rule) => {
-				requestedList.forEach((requestList) => {
-					const ruleList = rule.list;
-					if (
-						(ruleList instanceof RegExp && ruleList.test(requestList)) ||
-						(ruleList instanceof Array && ruleList.includes(requestList))
-					) {
-						if (!rule.exclude) {
-							roleAccessibleList.push(requestList);
-						} else {
-							roleAccessibleList = roleAccessibleList.filter((item) => {
-								return (
-									(ruleList instanceof RegExp && !ruleList.test(item)) ||
-									(ruleList instanceof Array && !ruleList.includes(item))
-								);
-							});
-						}
-					}
-				});
-			});
-
-			const group = this.target.getGroup();
-			if (group) {
-				const listAccessPermissions = group.getPermissions(
-					action.getType(),
-				) as ListAccessPermission[];
-
-				if (listAccessPermissions.length > 0) {
-					listAccessPermissions.forEach((permission) => {
-						accessibleList = mergeArrays(
-							accessibleList,
-							permission.getAccessibleList(action as any),
-						);
-					});
 				}
-
-				return findSharedMembers(accessibleList, roleAccessibleList);
 			}
-
-			return roleAccessibleList;
 		}
 
-		return accessibleList;
+		return roleAccessibleList;
 	}
 }

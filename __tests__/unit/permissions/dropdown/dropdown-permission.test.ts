@@ -113,11 +113,59 @@ describe("DropdownAccessPermission class", () => {
 
 		expect(permission.getAccessibleList(action)).toEqual([]);
 	});
-	it("should return empty array if the exclude flag exist in the group permission", () => {
+	it("should return empty array if the exclude flag exist in the role permission but not in the group permission", () => {
 		const identifier = "dropdownAccessPermission";
 
 		const adminRole = new Role("ADMIN");
 		const group = new Group("MAIN");
+
+		const groupPermission = new DropdownAccessPermission(group, [
+			{
+				identifier,
+				list: ["a"],
+			},
+		]);
+
+		const rolePermission = new DropdownAccessPermission(adminRole, [
+			{
+				identifier,
+				list: ["a"],
+				exclude: true,
+			},
+		]);
+
+		adminRole.assignGroup(group);
+
+		const action = new DropdownAccessAction(adminRole.getCode(), {
+			identifier,
+			dropdown: ["a"],
+		});
+
+		expect(rolePermission.getAccessibleList(action)).toEqual([]);
+	});
+	it("should return empty array if the exclude flag exist in the role permission and the identifier is regex", () => {
+		const identifier = "dropdownAccessPermission";
+		const adminRole = new Role("ADMIN");
+
+		const rolePermission = new DropdownAccessPermission(adminRole, [
+			{
+				identifier,
+				list: /.*/,
+				exclude: true,
+			},
+		]);
+
+		const action = new DropdownAccessAction(adminRole.getCode(), {
+			identifier,
+			dropdown: ["a", "b", "c"],
+		});
+
+		expect(rolePermission.getAccessibleList(action)).toEqual([]);
+	});
+	it("should return mixed accessible list", () => {
+		const identifier = "dropdownAccessPermission";
+		const group = new Group("MAIN");
+		const adminRole = new Role("ADMIN");
 
 		const rolePermission = new DropdownAccessPermission(adminRole, [
 			{
@@ -126,13 +174,49 @@ describe("DropdownAccessPermission class", () => {
 			},
 		]);
 
+		const groupPermission = new DropdownAccessPermission(group, [
+			{
+				identifier,
+				list: ["b"],
+			},
+		]);
+
 		adminRole.assignGroup(group);
 
-		const action = new DropdownAccessAction("ADMIN", {
+		const action = new DropdownAccessAction(adminRole.getCode(), {
 			identifier,
-			dropdown: ["a"],
+			dropdown: ["a", "b", "c"],
 		});
 
-		expect(rolePermission.getAccessibleList(action)).toEqual([]);
+		expect(rolePermission.getAccessibleList(action)).toEqual(["b", "a"]);
+	});
+	it("should return mixed accessible list with exclude flag", () => {
+		const identifier = "dropdownAccessPermission";
+		const group = new Group("MAIN");
+		const adminRole = new Role("ADMIN");
+
+		const rolePermission = new DropdownAccessPermission(adminRole, [
+			{
+				identifier,
+				list: ["b"],
+				exclude: true,
+			},
+		]);
+
+		const groupPermission = new DropdownAccessPermission(group, [
+			{
+				identifier,
+				list: ["b", "c"],
+			},
+		]);
+
+		adminRole.assignGroup(group);
+
+		const action = new DropdownAccessAction(adminRole.getCode(), {
+			identifier,
+			dropdown: ["a", "b", "c"],
+		});
+
+		expect(rolePermission.getAccessibleList(action)).toEqual(["c"]);
 	});
 });

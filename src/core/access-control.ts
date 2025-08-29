@@ -107,24 +107,26 @@ export class AccessControl extends RoleAccessControl {
 
 		const matchingPermissions = role.getPermissions(action.getType());
 
-		if (matchingPermissions.length === 0 && callbacks.onFailure) {
-			callbacks.onFailure(action, {
-				action,
-				message: "No matching permissions found.",
-				status: "failed",
-				target: role,
-			});
+		if (matchingPermissions.length === 0) {
+			if (callbacks.onFailure) {
+				callbacks.onFailure(action, {
+					action,
+					message: "No matching permissions found.",
+					status: "failed",
+					target: role,
+				});
+			}
 			return;
 		}
 
-		for (const permission of matchingPermissions) {
-			const result = permission.validate(action);
-			if (result instanceof PermissionMessage && result.status === "failed") {
-				if (callbacks.onFailure) {
-					callbacks.onFailure(action, result);
-				}
-				return;
+		// Only the last permission is checked, since the rules are combined in the permission class
+		const permission = matchingPermissions.at(-1);
+		const result = permission!.validate(action);
+		if (result instanceof PermissionMessage && result.status === "failed") {
+			if (callbacks.onFailure) {
+				callbacks.onFailure(action, result);
 			}
+			return;
 		}
 
 		callbacks.onSuccess(action);
@@ -305,26 +307,7 @@ export abstract class Permission<T = string, R extends unknown[] = unknown[]> {
 	) {
 		target.assignPermission(this as unknown as Permission);
 
-		let combinedRules = [];
-		if (this.target instanceof Role && this.target.getGroup()) {
-			const inheritedRules = this.target
-				.getGroup()!
-				.getPermissions(this.type as string)
-				.map((permission) => permission.getRules())
-				.flat();
-			combinedRules = [...inheritedRules, ...rules];
-		} else if (this.target instanceof Group && this.target.getInheritFrom()) {
-			const inheritedRules = this.target
-				.getInheritFrom()!
-				.getPermissions(this.type as string)
-				.map((permission) => permission.getRules())
-				.flat();
-			combinedRules = [...inheritedRules, ...rules];
-		} else {
-			combinedRules = [...rules];
-		}
-
-		this.rules = combinedRules as R;
+		this.rules = rules as R;
 	}
 
 	/**
@@ -338,11 +321,30 @@ export abstract class Permission<T = string, R extends unknown[] = unknown[]> {
 	}
 
 	/**
-	 * Get the rules associated with the permission.
+	 * Get the rules associated with the permission, including inherited rules from parent groups.
 	 * @returns {R[]} An array of rules.
 	 */
 	getRules(): R {
-		return this.rules;
+		let combinedRules = [];
+		if (this.target instanceof Role && this.target.getGroup()) {
+			const inheritedRules = this.target
+				.getGroup()!
+				.getPermissions(this.type as string)
+				.map((permission) => permission.getRules())
+				.flat();
+			combinedRules = [...inheritedRules, ...this.rules];
+		} else if (this.target instanceof Group && this.target.getInheritFrom()) {
+			const inheritedRules = this.target
+				.getInheritFrom()!
+				.getPermissions(this.type as string)
+				.map((permission) => permission.getRules())
+				.flat();
+			combinedRules = [...inheritedRules, ...this.rules];
+		} else {
+			combinedRules = [...this.rules];
+		}
+
+		return combinedRules as R;
 	}
 
 	/**
