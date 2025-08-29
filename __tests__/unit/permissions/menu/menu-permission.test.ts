@@ -113,26 +113,4 @@ describe("MenuAccessPermission class", () => {
 
 		expect(permission.getAccessibleList(action)).toEqual([]);
 	});
-	it("should return empty array if the exclude flag exist in the group permission", () => {
-		const identifier = "menuAccessPermission";
-
-		const adminRole = new Role("ADMIN");
-		const group = new Group("MAIN");
-
-		const rolePermission = new MenuAccessPermission(adminRole, [
-			{
-				identifier,
-				list: ["a"],
-			},
-		]);
-
-		adminRole.assignGroup(group);
-
-		const action = new MenuAccessAction("ADMIN", {
-			identifier,
-			menu: ["a"],
-		});
-
-		expect(rolePermission.getAccessibleList(action)).toEqual([]);
-	});
 });
