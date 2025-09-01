@@ -11,15 +11,21 @@ interface IPermissionCallbacks<A extends Action> {
 	/**
 	 * Callback for when an action fails.
 	 * @param {A} action - The action that failed.
+	 * @param {Permission | null} permission - The permission that failed.
 	 * @param {IPermissionMessage} message - The message associated with the failure.
 	 */
-	onFailure?: (action: A, message: IPermissionMessage) => void;
+	onFailure?: (
+		action: A,
+		permission: Permission | null,
+		message: IPermissionMessage,
+	) => void;
 
 	/**
 	 * Callback for when an action succeeds.
 	 * @param {A} action - The action that succeeded.
+	 * @param {Permission} permission - The permission that succeeded.
 	 */
-	onSuccess: (action: A) => void;
+	onSuccess: (action: A, permission: Permission) => void;
 }
 
 /**
@@ -96,7 +102,7 @@ export class AccessControl extends RoleAccessControl {
 
 		if (!role) {
 			if (callbacks.onFailure) {
-				callbacks.onFailure(action, {
+				callbacks.onFailure(action, null, {
 					action,
 					message: "Role not found.",
 					status: "failed",
@@ -109,7 +115,7 @@ export class AccessControl extends RoleAccessControl {
 
 		if (matchingPermissions.length === 0) {
 			if (callbacks.onFailure) {
-				callbacks.onFailure(action, {
+				callbacks.onFailure(action, null, {
 					action,
 					message: "No matching permissions found.",
 					status: "failed",
@@ -124,12 +130,12 @@ export class AccessControl extends RoleAccessControl {
 		const result = permission!.validate(action);
 		if (result instanceof PermissionMessage && result.status === "failed") {
 			if (callbacks.onFailure) {
-				callbacks.onFailure(action, result);
+				callbacks.onFailure(action, permission!, result);
 			}
 			return;
 		}
 
-		callbacks.onSuccess(action);
+		callbacks.onSuccess(action, permission!);
 	}
 
 	/**

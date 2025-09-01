@@ -85,9 +85,11 @@ describe("RouteAccessPermission Class", () => {
 			groups: [group],
 		});
 
-		createRoutePermission(adminRole, [{ route: "random", exclude: true }]);
+		const rolePermission = createRoutePermission(adminRole, [
+			{ route: "random", exclude: true },
+		]);
 
-		createRoutePermission(group, [{ route: "random" }]);
+		const groupPermission = createRoutePermission(group, [{ route: "random" }]);
 
 		group.assignRole(adminRole);
 
@@ -103,7 +105,11 @@ describe("RouteAccessPermission Class", () => {
 			onFailure: mockFailure,
 		});
 
-		expect(mockFailure).toBeCalledWith(action, expect.any(Object));
+		expect(mockFailure).toBeCalledWith(
+			action,
+			rolePermission,
+			expect.any(Object),
+		);
 		expect(mockSuccess).not.toHaveBeenCalled();
 	});
 });
