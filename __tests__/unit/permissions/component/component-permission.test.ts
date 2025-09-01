@@ -108,7 +108,7 @@ describe("ComponentAccessPermission class", () => {
 			groups: [group],
 		});
 
-		createComponentPermission(adminRole, [
+		const rolePermission = createComponentPermission(adminRole, [
 			{
 				actions: ["view"],
 				identifier: "componentAccessAction",
@@ -116,7 +116,7 @@ describe("ComponentAccessPermission class", () => {
 			},
 		]);
 
-		createComponentPermission(group, [
+		const groupPermission = createComponentPermission(group, [
 			{
 				actions: ["view"],
 				identifier: "componentAccessAction",
@@ -137,7 +137,11 @@ describe("ComponentAccessPermission class", () => {
 			onSuccess: mockSuccess,
 			onFailure: mockFailure,
 		});
-		expect(mockFailure).toBeCalledWith(action, expect.any(Object));
+		expect(mockFailure).toBeCalledWith(
+			action,
+			rolePermission,
+			expect.any(Object),
+		);
 		expect(mockSuccess).not.toHaveBeenCalled();
 	});
 });
