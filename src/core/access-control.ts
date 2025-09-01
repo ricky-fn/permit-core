@@ -18,8 +18,9 @@ interface IPermissionCallbacks<A extends Action> {
 	/**
 	 * Callback for when an action succeeds.
 	 * @param {A} action - The action that succeeded.
+	 * @param {Permission} permission - The permission that succeeded.
 	 */
-	onSuccess: (action: A) => void;
+	onSuccess: (action: A, permission: Permission) => void;
 }
 
 /**
@@ -129,7 +130,7 @@ export class AccessControl extends RoleAccessControl {
 			return;
 		}
 
-		callbacks.onSuccess(action);
+		callbacks.onSuccess(action, permission!);
 	}
 
 	/**
