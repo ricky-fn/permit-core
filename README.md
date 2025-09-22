@@ -41,7 +41,7 @@ A robust implementation of role-based access control (RBAC) with:
 ## Installation 💻
 
 ```bash
-npm install @ricky-fn/permit-core
+npm install permit-core
 ```
 
 ## Quick Start 🚀
