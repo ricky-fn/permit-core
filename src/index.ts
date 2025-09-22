@@ -53,6 +53,11 @@ export {
 } from "./permissions/component/component-permission";
 
 export {
+	DropdownAccessPermission,
+	DropdownAccessAction,
+} from "./permissions/dropdown/dropdown-permission";
+
+export {
 	MenuAccessPermission,
 	MenuAccessAction,
 } from "./permissions/menu/menu-permission";
