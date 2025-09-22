@@ -32,6 +32,12 @@ A robust implementation of role-based access control (RBAC) with:
   - Middleware support
   - Comprehensive error handling
 
+## Framework Compatibility 🌐
+
+- Works great with React, Svelte, and Vue via lightweight wrappers/adapters
+- Live demo (Svelte wrapper): [svelte-permit-core.pages.dev](https://svelte-permit-core.pages.dev)
+- GitHub (Svelte wrapper): [ricky-fn/svelte-permit-core](https://github.com/ricky-fn/svelte-permit-core)
+
 ## Installation 💻
 
 ```bash
